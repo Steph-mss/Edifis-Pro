@@ -1,0 +1,72 @@
+node_modules/
+npm-debug.log
+yarn-error.log
+frontend/edifis-pro/.env
+backend/coverage
+frontend/edifis-pro/coverage
+.env
+.github\workflows\ci.yml
+.github\workflows\deploy.yml
+
+pnpm-lock.yaml
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# fichier d'environnement
+.env
+
+# IDEs and editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Build directories
+build/
+out/
+wDROP/
+patches/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Fichiers de notes personnelles
+accroche.md
+23-08-25.md
+CHECKLIST.md
+DOCUMENTATION_COMPLETE.md
+GUIDE_DE_LANCEMENT.md
+TODO.md
+docus
+
+complements
+25-08-25.md
+waw.txt
+complement
+
+hash.js
+DOcHelpDossierProjet

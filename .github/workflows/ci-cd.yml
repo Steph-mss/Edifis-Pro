@@ -1,0 +1,89 @@
+name: Pipeline CI/CD
+# Nom du workflow CI/CD
+
+on:
+  push:
+    branches:
+      - develop # Branche de développement principale
+      - main # Branche de production pour le déploiement
+  pull_request:
+    branches:
+      - develop
+      - main
+      # Lance les tests lors de PR vers ces branches
+
+jobs:
+  test-backend:
+    name: Test Backend
+    # Ce job s'exécute si la branche est "develop"
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Vérifier le code
+        # Récupère le code source du dépôt
+        uses: actions/checkout@v2
+
+      - name: Configurer Node.js
+        # Configure Node.js pour l'environnement CI
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Installer les dépendances et exécuter les tests backend
+        # Passe dans le dossier backend, installe les dépendances et lance les tests
+        working-directory: backend
+        run: |
+          npm install                 # Installe les dépendances du backend
+          npm run test                # Exécute les tests définis dans package.json du backend
+
+  deploy:
+    name: Deploiement en Production
+    # Ce job de déploiement ne s'exécute que sur la branche main
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: [test-backend] # Attend que les tests backend soient terminés
+    steps:
+      - name: Vérifier le code
+        # Récupère le code source du dépôt
+        uses: actions/checkout@v2
+
+      - name: Configurer Node.js
+        # Configure Node.js pour le déploiement
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Construire le Frontend
+        # Construit l'application frontend (React)
+        working-directory: frontend/edifis-pro
+        run: |
+          npm install                 # Installe les dépendances du frontend
+          npm run build               # Compile l'application React en mode production
+
+      - name: Construire le Backend (si nécessaire)
+        # Construit l'application backend, si une étape de build est nécessaire
+        working-directory: backend
+        run: |
+          npm install                 # Installe les dépendances du backend
+          npm run build               # Exécute le build du backend (s'il y en a un)
+
+      - name: Déploiement
+        # Étape de déploiement simulé (ici, on archive les artefacts)
+        run: |
+          echo "Déploiement de l'application..."
+          echo "Archivage des artefacts de build..."
+          echo "Les builds sont prêts pour être déployés ou récupérés."
+
+      - name: Télécharger le build du Frontend
+        # Archive le build du frontend pour le rendre accessible dans les Artifacts de GitHub Actions
+        uses: actions/upload-artifact@v2
+        with:
+          name: frontend-build
+          path: frontend/build
+
+      - name: Télécharger le code du Backend
+        # Archive le build ou le code du backend pour le rendre accessible
+        uses: actions/upload-artifact@v2
+        with:
+          name: backend-artifact
+          path: backend
