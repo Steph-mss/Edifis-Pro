@@ -1,0 +1,207 @@
+name: CI/CD Azure VM via GHCR
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: production-vm
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_BACKEND: ghcr.io/${{ github.repository_owner }}/edifis-backend
+  IMAGE_FRONTEND: ghcr.io/${{ github.repository_owner }}/edifis-frontend
+
+jobs:
+  test-backend:
+    name: Test backend
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./backend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Run backend tests
+        env:
+          NODE_ENV: test
+          JWT_SECRET: test_secret_ci
+          FRONTEND_URL: http://localhost:5174
+          DISABLE_RATE_LIMIT: true
+        run: npm test
+
+  build-frontend-check:
+    name: Build frontend
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./frontend/edifis-pro
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/edifis-pro/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build frontend
+        env:
+          VITE_API_URL: /api
+        run: npm run build
+
+  build-and-push-images:
+    name: Build and push Docker images
+    runs-on: ubuntu-latest
+    needs:
+      - test-backend
+      - build-frontend-check
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE_BACKEND }}:latest
+            ${{ env.IMAGE_BACKEND }}:${{ github.sha }}
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend/edifis-pro
+          file: ./frontend/edifis-pro/Dockerfile
+          push: true
+          build-args: |
+            VITE_API_URL=/api
+          tags: |
+            ${{ env.IMAGE_FRONTEND }}:latest
+            ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
+
+  deploy:
+    name: Deploy on Azure VM
+    runs-on: ubuntu-latest
+    needs:
+      - build-and-push-images
+
+    steps:
+      - name: Deploy with SSH
+        uses: appleboy/ssh-action@v1
+        env:
+          PROD_ENV_FILE: ${{ secrets.PROD_ENV_FILE }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE_BACKEND: ghcr.io/${{ github.repository_owner }}/edifis-backend:${{ github.sha }}
+          IMAGE_FRONTEND: ghcr.io/${{ github.repository_owner }}/edifis-frontend:${{ github.sha }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script_stop: true
+          envs: PROD_ENV_FILE,GHCR_USER,GHCR_TOKEN,IMAGE_BACKEND,IMAGE_FRONTEND
+          script: |
+            set -e
+
+            APP_DIR="/opt/edifis-pro"
+            mkdir -p "$APP_DIR"
+            cd "$APP_DIR"
+
+            cat > .env <<'EOF'
+            $PROD_ENV_FILE
+            EOF
+
+            cat > docker-compose.prod.yml <<EOF
+            version: "3.9"
+
+            services:
+              db:
+                image: mariadb:11
+                container_name: edifis-db
+                restart: unless-stopped
+                environment:
+                  MYSQL_ROOT_PASSWORD: \${DB_ROOT_PASSWORD}
+                  MYSQL_DATABASE: \${DB_NAME}
+                  MYSQL_USER: \${DB_USER}
+                  MYSQL_PASSWORD: \${DB_PASSWORD}
+                volumes:
+                  - edifis_db_data:/var/lib/mysql
+                networks:
+                  - edifis-net
+
+              backend:
+                image: $IMAGE_BACKEND
+                container_name: edifis-backend
+                restart: unless-stopped
+                env_file:
+                  - .env
+                depends_on:
+                  - db
+                ports:
+                  - "3000:3000"
+                volumes:
+                  - ./backend/uploads:/app/uploads
+                networks:
+                  - edifis-net
+
+              frontend:
+                image: $IMAGE_FRONTEND
+                container_name: edifis-frontend
+                restart: unless-stopped
+                depends_on:
+                  - backend
+                ports:
+                  - "8080:80"
+                networks:
+                  - edifis-net
+
+            volumes:
+              edifis_db_data:
+
+            networks:
+              edifis-net:
+            EOF
+
+            mkdir -p backend/uploads
+
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml down || true
+            docker compose -f docker-compose.prod.yml up -d
+
+            docker image prune -af || true
