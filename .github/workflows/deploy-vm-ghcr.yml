@@ -126,8 +126,8 @@ jobs:
           PROD_ENV_FILE: ${{ secrets.PROD_ENV_FILE }}
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          IMAGE_BACKEND: ghcr.io/${{ github.repository_owner }}/edifis-backend:${{ github.sha }}
-          IMAGE_FRONTEND: ghcr.io/${{ github.repository_owner }}/edifis-frontend:${{ github.sha }}
+          IMAGE_BACKEND: ghcr.io/steph-mss/edifis-backend:${{ github.sha }}
+          IMAGE_FRONTEND: ghcr.io/steph-mss/edifis-frontend:${{ github.sha }}
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
@@ -141,9 +141,7 @@ jobs:
             mkdir -p "$APP_DIR"
             cd "$APP_DIR"
 
-            cat > .env <<'EOF'
-            $PROD_ENV_FILE
-            EOF
+            echo "$PROD_ENV_FILE" > .env
 
             cat > docker-compose.prod.yml <<EOF
             version: "3.9"
