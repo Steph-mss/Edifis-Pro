@@ -10,14 +10,15 @@ frontend/edifis-pro/coverage
 
 pnpm-lock.yaml
 
-/.terraform
-/.terraform.lock.hcl
-/terraform.tfstate
-/terraform.tfstate.backup
-terraform.tfstate.backup
-/.terraform.lock.hcl
+.terraform/
+*.tfstate
+*.tfstate.*
 .terraform.lock.hcl
-.terraform
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
 
 
 
