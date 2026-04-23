@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import userService from '../../services/userService';
 import apiService from '../../services/apiService';
+import Cookies from 'js-cookie';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -28,7 +29,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = Cookies.get('token');
 
     // Trouve le statut de maintenance au chargement initial
     apiService
@@ -48,22 +49,22 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
               .getById(uid)
               .then(setUser)
               .catch(() => {
-                localStorage.removeItem('token');
+                Cookies.remove('token');
                 setUser(null);
               })
               .finally(() => setIsLoading(false));
           } else {
-            localStorage.removeItem('token');
+            Cookies.remove('token');
             setUser(null);
             setIsLoading(false);
           }
         } else {
-          localStorage.removeItem('token');
+          Cookies.remove('token');
           setUser(null);
           setIsLoading(false);
         }
       } catch (error) {
-        localStorage.removeItem('token');
+        Cookies.remove('token');
         setUser(null);
         setIsLoading(false);
       }
@@ -74,7 +75,11 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const login = async (token: string) => {
     try {
-      localStorage.setItem('token', token);
+      Cookies.set('token', token, { 
+        expires: 30, 
+        secure: true, 
+        sameSite: 'strict' 
+      }); // Default cookie expiration of 30 days, adjust as needed
 
       const decoded = jwtDecode<any>(token);
       const uid = decoded.id || decoded.userId || decoded.user_id || decoded.sub;
@@ -87,13 +92,13 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     } catch (err) {
       console.error('Failed to log in:', err);
-      localStorage.removeItem('token');
+      Cookies.remove('token');
       setUser(null);
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    Cookies.remove('token');
     setUser(null);
     navigate('/login');
   };

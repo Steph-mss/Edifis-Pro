@@ -1,5 +1,6 @@
 import api from './api';
 import { Competence } from './competenceService';
+import Cookies from 'js-cookie';
 
 type RoleType = 'Admin' | 'Worker' | 'Manager' | 'HR' | 'Project_Chief';
 
@@ -115,7 +116,7 @@ const userService = {
       headers: {
         'Content-Type': 'multipart/form-data',
         Accept: 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        Authorization: `Bearer ${Cookies.get('token')}`,
       },
     });
     return res.data;

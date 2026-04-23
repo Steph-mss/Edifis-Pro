@@ -1,4 +1,5 @@
 import axios from 'axios';
+import Cookies from 'js-cookie';
 
 const rawBase = import.meta.env.VITE_API_URL || '/api';
 
@@ -14,7 +15,7 @@ const api = axios.create({
 
 // Ajout auto du Bearer token
 api.interceptors.request.use(config => {
-  const token = localStorage.getItem('token');
+  const token = Cookies.get('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

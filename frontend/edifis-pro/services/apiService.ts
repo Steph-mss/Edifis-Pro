@@ -4,6 +4,8 @@ const API_BASE_URL =
   // fallback (dev): backend exposed by docker-compose on port 5000
   '/api';
 
+import Cookies from 'js-cookie';
+
 const apiService = {
   get: async <T>(endpoint: string): Promise<T> => {
     // const token = localStorage.getItem("token");
@@ -14,7 +16,7 @@ const apiService = {
     //     Authorization: `Bearer ${token}`,
     //   },
     // });
-    const token = localStorage.getItem('token');
+    const token = Cookies.get('token');
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
@@ -35,7 +37,7 @@ const apiService = {
   },
 
   post: async <T>(endpoint: string, data: unknown): Promise<T> => {
-    const token = localStorage.getItem('token');
+    const token = Cookies.get('token');
     const res = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
       headers: {
@@ -65,7 +67,7 @@ const apiService = {
   },
 
   put: async <T>(endpoint: string, data: unknown): Promise<T> => {
-    const token = localStorage.getItem('token');
+    const token = Cookies.get('token');
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'PUT',
       headers: {
@@ -82,7 +84,7 @@ const apiService = {
   },
 
   delete: async <T>(endpoint: string): Promise<T> => {
-    const token = localStorage.getItem('token');
+    const token = Cookies.get('token');
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'DELETE',
       headers: {
@@ -98,7 +100,7 @@ const apiService = {
   },
 
   postForm: async <T>(endpoint: string, formData: FormData): Promise<T> => {
-    const token = localStorage.getItem('token');
+    const token = Cookies.get('token');
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
       headers: {
@@ -114,7 +116,7 @@ const apiService = {
   },
 
   putForm: async <T>(endpoint: string, formData: FormData): Promise<T> => {
-    const token = localStorage.getItem('token');
+    const token = Cookies.get('token');
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'PUT',
       headers: {
@@ -130,7 +132,7 @@ const apiService = {
   },
 
   patchForm: async <T>(endpoint: string, formData: FormData): Promise<T> => {
-    const token = localStorage.getItem('token');
+    const token = Cookies.get('token');
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'PATCH',
       headers: {
