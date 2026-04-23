@@ -4,7 +4,7 @@
  */
 const API_URL: string =
   (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) ||
-  'http://localhost:3000/api';
+  '/api/api';
 
 export const BACKEND_URL = API_URL.replace(/\/api$/, '');
 

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const rawBase = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const rawBase = import.meta.env.VITE_API_URL || '/api';
 
 // Supprime le slash final s'il existe
 const trimmed = rawBase.replace(/\/$/, '');
