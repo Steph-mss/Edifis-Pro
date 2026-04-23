@@ -131,7 +131,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   }
 
   custom_data = base64encode(templatefile("${path.module}/cloud-init.tpl", {
-    nginx_conf = file("${path.module}/deploy/nginx.conf")
+    nginx_conf = indent(6, file("${path.module}/deploy/nginx.conf"))
   }))
 }
 

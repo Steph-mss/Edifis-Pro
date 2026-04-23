@@ -12,9 +12,10 @@ packages:
 
 write_files:
   - path: /etc/nginx/sites-available/edifis-pro
-    permissions: '0644'
+    owner: root:root
+    permissions: "0644"
     content: |
-${indent(6, nginx_conf)}
+      ${nginx_conf}
 
 runcmd:
   - mkdir -p /opt/edifis-pro
