@@ -16,8 +16,8 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_BACKEND: ghcr.io/${{ github.repository_owner_lowercase }}/edifis-backend
-  IMAGE_FRONTEND: ghcr.io/${{ github.repository_owner_lowercase }}/edifis-frontend
+  IMAGE_BACKEND: ghcr.io/steph-mss/edifis-backend
+  IMAGE_FRONTEND: ghcr.io/steph-mss/edifis-frontend
 
 jobs:
   test-backend:
