@@ -1,7 +1,7 @@
-import { CalendarClock, Loader2, Check, Ban  } from "lucide-react";
+import { CalendarClock, Loader2, Check, Ban, Hourglass } from "lucide-react";
 
 interface BadgeProps {
-    status: "Prévu" | "En cours" | "Annulé" | "Terminé";
+    status: "Prévu" | "En cours" | "Annulé" | "Terminé" | "En attente de validation";
 }
 
 export default function Badge({ status }: BadgeProps) {
@@ -25,6 +25,11 @@ export default function Badge({ status }: BadgeProps) {
             text: "Terminé",
             icon: <Check size={12} />,
             colorClass: "text-green-900 bg-green-100",
+        },
+        "En attente de validation": {
+            text: "En attente",
+            icon: <Hourglass size={12} />,
+            colorClass: "text-orange-900 bg-orange-100",
         },
     };
 

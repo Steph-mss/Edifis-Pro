@@ -153,11 +153,7 @@ export default function Home() {
                       <h3 className="font-semibold text-gray-900">{task.name}</h3>
                       {task.status && (
                         <Badge
-                          status={
-                            task.status === 'En attente de validation'
-                              ? 'Prévu'
-                              : (task.status as 'En cours' | 'Terminé' | 'Annulé' | 'Prévu')
-                          }
+                          status={task.status}
                         />
                       )}
                     </div>

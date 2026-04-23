@@ -8,11 +8,11 @@ const Task = sequelize.define(
     name: { type: DataTypes.STRING, allowNull: false },
     description: { type: DataTypes.TEXT, allowNull: true },
     status: {
-      type: DataTypes.ENUM('En cours', 'Terminé', 'Annulé', 'Prévu'),
+      type: DataTypes.ENUM('En cours', 'Terminé', 'Annulé', 'Prévu', 'En attente de validation'),
       allowNull: false,
       defaultValue: 'Prévu',
       validate: {
-        isIn: [['En cours', 'Terminé', 'Annulé', 'Prévu']],
+        isIn: [['En cours', 'Terminé', 'Annulé', 'Prévu', 'En attente de validation']],
       },
     },
     creation_date: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
