@@ -66,6 +66,12 @@ const taskService = {
     const res = await apiService.get<Task[]>(`/tasks/site/${siteId}`);
     return res as Task[];
   },
+  
+  // Mettre à jour uniquement le statut d'une tâche
+  updateStatus: async (id: number, status: TaskStatus): Promise<Task> => {
+    const res = await apiService.patch<Task>(`/tasks/${id}/status`, { status });
+    return res as Task;
+  },
 };
 
 export default taskService;

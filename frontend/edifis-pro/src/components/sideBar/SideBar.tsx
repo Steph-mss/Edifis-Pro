@@ -25,7 +25,12 @@ const allRoutes = [
     Icon: Construction,
     roles: ['Admin', 'Manager', 'Project_Chief'],
   },
-  { to: '/workers', label: 'Employés', Icon: UserRound, roles: ['Admin', 'Manager', 'HR'] },
+  {
+    to: '/workers',
+    label: 'Employés',
+    Icon: UserRound,
+    roles: ['Admin', 'Manager', 'HR', 'Project_Chief'],
+  },
   { to: '/competences', label: 'Compétences', Icon: UserSearch, roles: ['Admin', 'Manager', 'HR'] },
 ];
 

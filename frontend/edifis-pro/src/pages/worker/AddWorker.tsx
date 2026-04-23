@@ -258,9 +258,8 @@ export default function AddWorker() {
                     <div
                       key={comp.competence_id}
                       onClick={() => handleCompetenceToggle(comp.competence_id)}
-                      className={`flex items-center p-2 border rounded-md cursor-pointer transition-colors ${
-                        isSelected ? 'bg-blue-100 border-blue-400' : 'bg-white'
-                      }`}
+                      className={`flex items-center p-2 border rounded-md cursor-pointer transition-colors ${isSelected ? 'bg-blue-100 border-blue-400' : 'bg-white'
+                        }`}
                     >
                       <input type="checkbox" checked={isSelected} readOnly className="mr-2" />
                       <span>{comp.name}</span>

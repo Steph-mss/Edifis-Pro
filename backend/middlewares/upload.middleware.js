@@ -4,12 +4,13 @@ const path = require('path');
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    let uploadPath = 'uploads/';
+    const rootDir = path.join(__dirname, '..');
+    let uploadPath = path.join(rootDir, 'uploads');
 
     if (req.uploadType === 'profile') {
-      uploadPath += 'profile_pictures/';
+      uploadPath = path.join(uploadPath, 'profile_pictures');
     } else if (req.uploadType === 'construction') {
-      uploadPath += 'construction_sites/';
+      uploadPath = path.join(uploadPath, 'construction_sites');
     }
 
     // Vérifie si le dossier existe, sinon crée-le

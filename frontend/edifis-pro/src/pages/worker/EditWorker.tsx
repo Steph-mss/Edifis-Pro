@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import competenceService, { Competence } from '../../../services/competenceService';
 import userService from '../../../services/userService';
 import { HelpCircle } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 type RoleType = 'Admin' | 'Worker' | 'Manager' | 'Project_Chief' | 'HR';
 
@@ -19,6 +20,8 @@ interface UserPayload {
 export default function EditWorker() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
+  const isAdmin = user?.role?.name === 'Admin';
 
   const [formData, setFormData] = useState({
     firstname: '',
@@ -213,7 +216,8 @@ export default function EditWorker() {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className="mt-1 h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:ring-orange-500 focus:border-orange-500"
+                    readOnly={!isAdmin}
+                    className={`mt-1 h-10 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm ${!isAdmin ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'bg-white focus:ring-orange-500 focus:border-orange-500'}`}
                     required
                   />
                 </div>

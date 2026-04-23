@@ -4,6 +4,7 @@ import userService, { User } from '../../../services/userService';
 import { useAuth } from '../../context/AuthContext';
 import Loading from '../../components/loading/Loading';
 import { Competence } from '../../../services/competenceService';
+import { getProfileImageUrl } from '../../utils/imageUrl';
 
 const DEFAULT_IMAGE = 'https://www.capcampus.com/img/u/1/job-etudiant-batiment.jpg';
 
@@ -132,7 +133,7 @@ export default function Workers() {
             >
               <Link to={`/workers/${worker.user_id}`} className="w-full">
                 <img
-                  src={worker.profile_picture?.replace('/api', '') || DEFAULT_IMAGE}
+                  src={getProfileImageUrl(worker.profile_picture) || DEFAULT_IMAGE}
                   alt={`Photo de ${worker.firstname}`}
                   className="w-full h-48 object-cover rounded-md mb-4"
                   loading="lazy"
@@ -153,23 +154,38 @@ export default function Workers() {
                   : 'Aucune compétence'}
               </p>
               <div className="flex-grow"></div>
-              {canCreate && (
-                <div className="mt-4 w-full flex gap-2">
-                  <Link
-                    to={`/workers/edit/${worker.user_id}`}
-                    aria-label={`Modifier le profil de ${worker.firstname} ${worker.lastname}`}
-                    className="flex-1 inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-colors h-9 px-4 py-2 bg-gray-200 text-gray-800 hover:bg-gray-300"
-                  >
-                    Modifier
-                  </Link>
-                  <button
-                    onClick={() => handleDelete(worker.user_id!)}
-                    className="flex-1 inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-colors h-9 px-4 py-2 bg-red-600 text-dark hover:bg-red-700 cursor-pointer"
-                  >
-                    Supprimer
-                  </button>
-                </div>
-              )}
+              {canCreate &&
+                (() => {
+                  const targetRole = typeof worker.role === 'object' ? worker.role?.name : worker.role;
+                  const myRole = user?.role?.name;
+                  const isSelf = user?.user_id === worker.user_id;
+
+                  if (isSelf) return true; // On peut toujours se modifier soi-même (si canCreate ?) 
+                  // Note: canCreate est Admin/HR/Manager. Un Worker n'a pas canCreate donc il n'arrivera pas ici.
+
+                  if (myRole === 'Admin') return true;
+                  if (targetRole === 'Admin') return false;
+                  if (targetRole === 'HR' && (myRole === 'HR' || myRole === 'Manager')) return false;
+                  if (targetRole === 'Manager' && myRole === 'Manager') return false;
+
+                  return true;
+                })() && (
+                  <div className="mt-4 w-full flex gap-2">
+                    <Link
+                      to={`/workers/edit/${worker.user_id}`}
+                      aria-label={`Modifier le profil de ${worker.firstname} ${worker.lastname}`}
+                      className="flex-1 inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-colors h-9 px-4 py-2 bg-gray-200 text-gray-800 hover:bg-gray-300"
+                    >
+                      Modifier
+                    </Link>
+                    <button
+                      onClick={() => handleDelete(worker.user_id!)}
+                      className="flex-1 inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-colors h-9 px-4 py-2 bg-red-600 text-dark hover:bg-red-700 cursor-pointer"
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                )}
             </div>
           ))}
         </div>

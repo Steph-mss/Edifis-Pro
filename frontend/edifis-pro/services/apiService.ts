@@ -99,6 +99,23 @@ const apiService = {
     return await response.json();
   },
 
+  patch: async <T>(endpoint: string, data: unknown): Promise<T> => {
+    const token = Cookies.get('token');
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || errorData.message || 'Une erreur est survenue');
+    }
+    return await response.json();
+  },
+
   postForm: async <T>(endpoint: string, formData: FormData): Promise<T> => {
     const token = Cookies.get('token');
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {

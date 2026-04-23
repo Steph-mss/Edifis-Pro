@@ -18,11 +18,7 @@ export function getConstructionImageUrl(imageUrl?: string | null): string {
     return imageUrl;
   }
 
-  if (imageUrl.startsWith('/uploads/')) {
-    return imageUrl;
-  }
-
-  return `/uploads/construction_sites/${normalizeFileName(imageUrl)}`;
+  return `${BACKEND_URL}/uploads/construction_sites/${normalizeFileName(imageUrl)}`;
 }
 
 export function getProfileImageUrl(imageUrl?: string | null): string {
@@ -32,9 +28,5 @@ export function getProfileImageUrl(imageUrl?: string | null): string {
     return imageUrl;
   }
 
-  if (imageUrl.startsWith('/uploads/')) {
-    return imageUrl;
-  }
-
-  return `/uploads/profile_pictures/${normalizeFileName(imageUrl)}`;
+  return `${BACKEND_URL}/uploads/profile_pictures/${normalizeFileName(imageUrl)}`;
 }

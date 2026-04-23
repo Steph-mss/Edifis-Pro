@@ -76,12 +76,16 @@ function App() {
                     <Route path="/roadmap" element={<Roadmap />} />
                     <Route path="/user/:id" element={<UserDetail />} />
 
-                    {/* Routes for Admin, Manager, HR */}
-                    <Route element={<ProtectedRoute allowedRoles={["Admin", "Manager", "HR"]} />}>
+                    {/* Routes for Admin, Manager, HR, Project_Chief */}
+                    <Route element={<ProtectedRoute allowedRoles={["Admin", "Manager", "HR", "Project_Chief"]} />}>
                         <Route path="/workers" element={<Worker />} />
+                        <Route path="/workers/:id" element={<WorkerDetails />} />
+                    </Route>
+
+                    {/* Routes for Admin, Manager, HR only (Create/Edit) */}
+                    <Route element={<ProtectedRoute allowedRoles={["Admin", "Manager", "HR"]} />}>
                         <Route path="/workers/add" element={<AddWorker />} />
                         <Route path="/workers/edit/:id" element={<EditWorker />} />
-                        <Route path="/workers/:id" element={<WorkerDetails />} />
                         <Route path="/competences" element={<ManageCompetences />} />
                         <Route path="/competences/add" element={<AddCompetence />} />
                         <Route path="/competences/edit/:id" element={<EditCompetence />} />

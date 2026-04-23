@@ -5,6 +5,7 @@ import competenceService, { Competence } from '../../../services/competenceServi
 import Loading from '../../components/loading/Loading';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { getProfileImageUrl } from '../../utils/imageUrl';
 
 const DEFAULT_IMAGE = 'https://www.capcampus.com/img/u/1/job-etudiant-batiment.jpg';
 
@@ -167,7 +168,7 @@ export default function WorkerDetails() {
         <h1 className="text-3xl font-bold text-gray-900 mb-4">Détails de l'employé</h1>
         <div className="flex items-center mb-4">
           <img
-            src={worker.profile_picture || DEFAULT_IMAGE}
+            src={getProfileImageUrl(worker.profile_picture) || DEFAULT_IMAGE}
             alt={worker.firstname}
             className="w-24 h-24 object-cover rounded-full mr-4"
             loading="lazy"
@@ -323,27 +324,49 @@ export default function WorkerDetails() {
         )}
 
         <div className="mt-6 flex justify-between">
-          {canEdit && (
-            <button
-              onClick={() => {
-                if (isEditing) {
-                  handleSave();
-                }
-                setIsEditing(!isEditing);
-              }}
-              className="px-4 py-2 bg-orange-500 text-dark rounded hover:bg-orange-600 transition cursor-pointer"
-            >
-              {isEditing ? 'Enregistrer' : 'Modifier'}
-            </button>
-          )}
-          {canDelete && (
-            <button
-              onClick={handleDelete}
-              className="px-4 py-2 bg-red-600 text-dark rounded hover:bg-red-700 transition cursor-pointer"
-            >
-              Supprimer
-            </button>
-          )}
+          {canEdit &&
+            (() => {
+              const myRole = currentUser?.role?.name;
+              const targetRole = worker.role;
+              const isSelf = currentUser?.user_id === worker.user_id;
+              if (isSelf) return true;
+              if (myRole === 'Admin') return true;
+              if (targetRole === 'Admin') return false;
+              if (targetRole === 'HR' && (myRole === 'HR' || myRole === 'Manager')) return false;
+              if (targetRole === 'Manager' && myRole === 'Manager') return false;
+              return true;
+            })() && (
+              <button
+                onClick={() => {
+                  if (isEditing) {
+                    handleSave();
+                  }
+                  setIsEditing(!isEditing);
+                }}
+                className="px-4 py-2 bg-orange-500 text-dark rounded hover:bg-orange-600 transition cursor-pointer"
+              >
+                {isEditing ? 'Enregistrer' : 'Modifier'}
+              </button>
+            )}
+          {canDelete &&
+            (() => {
+              const myRole = currentUser?.role?.name;
+              const targetRole = worker.role;
+              const isSelf = currentUser?.user_id === worker.user_id;
+              if (isSelf) return false; // On ne peut pas se supprimer soi-même ici
+              if (myRole === 'Admin') return true;
+              if (targetRole === 'Admin') return false;
+              if (targetRole === 'HR' && (myRole === 'HR' || myRole === 'Manager')) return false;
+              if (targetRole === 'Manager' && myRole === 'Manager') return false;
+              return true;
+            })() && (
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 bg-red-600 text-dark rounded hover:bg-red-700 transition cursor-pointer"
+              >
+                Supprimer
+              </button>
+            )}
         </div>
       </div>
     </main>

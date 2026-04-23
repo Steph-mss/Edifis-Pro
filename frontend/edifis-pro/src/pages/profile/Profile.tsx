@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { getProfileImageUrl } from '../../utils/imageUrl';
 import LineChart from '../../components/lineChart/LineChart';
 import userService from '../../../services/userService';
 
@@ -14,13 +15,22 @@ export default function Profile() {
   const { user, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [updatedUser, setUpdatedUser] = useState({ ...user });
-
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
   const [previewImage, setPreviewImage] = useState(
-    user.profile_picture
-      ? `${import.meta.env.VITE_API_URL?.replace('/api', '')}/uploads/profile_pictures/${user.profile_picture}`
-      : 'https://i.pinimg.com/736x/ab/32/b1/ab32b1c5a8fabc0b9ae72250ce3c90c2.jpg',
+    getProfileImageUrl(user.profile_picture) ||
+      'https://i.pinimg.com/736x/ab/32/b1/ab32b1c5a8fabc0b9ae72250ce3c90c2.jpg',
   );
+
+  // Mettre à jour l'image si les infos de l'utilisateur changent (ex: après sauvegarde)
+  useEffect(() => {
+    if (!selectedFile) {
+      setPreviewImage(
+        getProfileImageUrl(user.profile_picture) ||
+          'https://i.pinimg.com/736x/ab/32/b1/ab32b1c5a8fabc0b9ae72250ce3c90c2.jpg',
+      );
+    }
+  }, [user.profile_picture, selectedFile]);
 
   // Champs mot de passe
   const [currentPassword, setCurrentPassword] = useState('');
@@ -175,9 +185,9 @@ export default function Profile() {
                   type="email"
                   name="email"
                   value={updatedUser.email}
-                  onChange={handleChange}
-                  readOnly={!isEditing}
-                  className="mt-1 h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm transition-colors focus:border-orange-500 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  readOnly={true}
+                  className="mt-1 h-10 w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-500 cursor-not-allowed"
+                  title="L'adresse email ne peut pas être modifiée."
                 />
               </div>
               <div>

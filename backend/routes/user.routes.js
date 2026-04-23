@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/user.controller');
 const { protect, isAdmin, canManageUsers } = require('../middlewares/auth.middleware');
-const { upload, setUploadType } = require('../middlewares/upload.middleware');
+const { upload, setUploadType, handleUploadError } = require('../middlewares/upload.middleware');
 
 /**
  * @swagger
@@ -228,6 +228,7 @@ router.post(
   protect,
   setUploadType('profile'),
   upload.single('profilePicture'),
+  handleUploadError,
   userController.updateProfilePicture,
 );
 

@@ -1,3 +1,4 @@
+const { Op, literal } = require('sequelize');
 const Task = require('../models/Task');
 const User = require('../models/User');
 const ConstructionSite = require('../models/ConstructionSite');
@@ -42,7 +43,29 @@ exports.createTask = async (req, res) => {
 
 exports.getAllTasks = async (req, res) => {
   try {
+    const { role, id: userId } = req.user;
+
+    let whereCondition = {};
+    if (role === 'Admin' || role === 'Manager') {
+      // No filter
+    } else if (role === 'Project_Chief') {
+      // Tasks of sites managed by this chef
+      whereCondition[Op.and] = [
+        literal(
+          `EXISTS (SELECT 1 FROM construction_site WHERE construction_site.construction_site_id = Task.construction_site_id AND construction_site.chef_de_projet_id = ${userId})`,
+        ),
+      ];
+    } else if (role === 'Worker') {
+      // Tasks assigned to this worker
+      whereCondition[Op.and] = [
+        literal(
+          `EXISTS (SELECT 1 FROM user_tasks WHERE user_tasks.task_id = Task.task_id AND user_tasks.user_id = ${userId})`,
+        ),
+      ];
+    }
+
     const tasks = await Task.findAll({
+      where: whereCondition,
       include: [
         {
           model: ConstructionSite,
@@ -276,6 +299,51 @@ exports.getTasksByConstructionSite = async (req, res) => {
       ],
     });
     res.json(tasks);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.updateTaskStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
+    if (!status) {
+      return res.status(400).json({ message: 'Le nouveau statut est requis.' });
+    }
+
+    const task = await Task.findByPk(id, {
+      include: [
+        { model: User, as: 'users', attributes: ['user_id'] },
+        { model: ConstructionSite, as: 'construction_site', attributes: ['chef_de_projet_id'] },
+      ],
+    });
+
+    if (!task) {
+      return res.status(404).json({ message: 'Tâche non trouvée.' });
+    }
+
+    // Autorisation : Admin, Manager ou Chef de projet du chantier concerné
+    let isAllowed = ['Admin', 'Manager'].includes(userRole);
+    if (!isAllowed && userRole === 'Project_Chief') {
+      isAllowed = task.construction_site?.chef_de_projet_id === userId;
+    }
+
+    // Ou si c'est un ouvrier assigné à la tâche
+    if (!isAllowed && userRole === 'Worker') {
+      isAllowed = task.users.some(u => u.user_id === userId);
+    }
+
+    if (!isAllowed) {
+      return res.status(403).json({ message: 'Vous n\'êtes pas autorisé à modifier le statut de cette tâche.' });
+    }
+
+    await task.update({ status });
+
+    res.json({ message: 'Statut mis à jour avec succès', task });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

@@ -105,7 +105,7 @@ const userService = {
     currentPassword: string;
     newPassword: string;
   }): Promise<{ message: string }> => {
-    const res = await api.post<{ message: string }>('/users/update-password', payload);
+    const res = await api.post<{ message: string }>('/users/change-password', payload);
     return res.data;
   },
 

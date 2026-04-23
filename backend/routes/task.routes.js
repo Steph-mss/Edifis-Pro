@@ -197,4 +197,36 @@ router.get('/user/:userId', protect, taskController.getTasksByUserId);
  */
 router.get('/site/:siteId', protect, taskController.getTasksByConstructionSite);
 
+/**
+ * @swagger
+ * /api/tasks/{id}/status:
+ *   patch:
+ *     summary: Mettre à jour le statut d'une tâche
+ *     tags: [Tasks]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID de la tâche
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status: { type: string }
+ *     responses:
+ *       200: { description: OK }
+ *       400: { description: Données invalides }
+ *       401: { description: Non autorisé }
+ *       403: { description: Interdit }
+ *       404: { description: Tâche non trouvée }
+ */
+router.patch('/:id/status', protect, taskController.updateTaskStatus);
+
 module.exports = router;

@@ -28,18 +28,12 @@ export default function Home() {
     const fetchDashboardData = async () => {
       try {
         const userRole = user.role?.name;
-        const canViewAllSites = userRole && ['Admin', 'Manager', 'HR'].includes(userRole);
-        const canViewAllWorkers = userRole && ['Admin', 'Manager', 'HR'].includes(userRole);
+        const canViewAllWorkers = userRole && ['Admin', 'Manager', 'HR', 'Project_Chief'].includes(userRole);
 
         const promises = [];
-        promises.push(
-          userRole === 'Admin' ? taskService.getAll() : taskService.getByUserId(user.user_id!),
-        );
-        if (canViewAllSites) {
-          promises.push(constructionSiteService.getAll());
-        } else {
-          promises.push(Promise.resolve([]));
-        }
+        promises.push(taskService.getAll());
+        promises.push(constructionSiteService.getAll());
+
         if (canViewAllWorkers) {
           promises.push(userService.getDirectory());
         } else {
@@ -74,7 +68,7 @@ export default function Home() {
     ).length,
   }));
 
-  const canViewStats = user?.role?.name && ['Admin', 'Manager', 'HR'].includes(user.role.name);
+  const canViewStats = user?.role?.name && ['Admin', 'Manager', 'HR', 'Project_Chief'].includes(user.role.name);
 
   if (loading) {
     return (

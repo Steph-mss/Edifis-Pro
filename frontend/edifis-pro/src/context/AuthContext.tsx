@@ -146,8 +146,11 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       }
       const response = await userService.updateUser(userIdToUpdate, updatedUser);
       if (response) {
-        const refreshedUser = await userService.getById(userIdToUpdate);
-        setUser(refreshedUser);
+        // Refresh context ONLY if updating self
+        if (String(userIdToUpdate) === String(user?.user_id)) {
+          const refreshedUser = await userService.getById(userIdToUpdate);
+          setUser(refreshedUser);
+        }
       } else {
         console.error('Erreur: réponse inattendue lors de la mise à jour', response);
       }

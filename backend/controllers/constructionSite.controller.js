@@ -82,7 +82,13 @@ exports.getAllConstructionSites = async (req, res) => {
     if (role === 'Admin' || role === 'Manager') {
       // No additional filtering needed for Admin/Manager
     } else if (role === 'Project_Chief') {
-      whereCondition.chef_de_projet_id = userId;
+      // Un chef de projet voit ses chantiers gérés ET ceux où il a des tâches
+      whereCondition[Op.or] = [
+        { chef_de_projet_id: userId },
+        literal(
+          `EXISTS (SELECT 1 FROM tasks AS Task WHERE Task.construction_site_id = ConstructionSite.construction_site_id AND EXISTS (SELECT 1 FROM user_tasks WHERE user_tasks.task_id = Task.task_id AND user_tasks.user_id = ${userId}))`,
+        ),
+      ];
     } else if (role === 'Worker') {
       // Filter construction sites where the worker is assigned to at least one task
       whereCondition[Op.and] = [
@@ -194,13 +200,20 @@ exports.assignConstructionSite = async (req, res) => {
     if (!site) return res.status(404).json({ message: 'Chantier non trouvé' });
 
     const chef = await User.findByPk(chefId);
-    if (!chef || chef.role_id !== 3) {
+    // Vérification : le chef doit être un Manager ou un Project_Chief
+    const projectChiefRoles = await Role.findAll({
+      where: { name: { [Op.in]: ['Manager', 'Project_Chief'] } },
+      attributes: ['role_id'],
+    });
+    const roleIds = projectChiefRoles.map(r => r.role_id);
+
+    if (!chef || !roleIds.includes(chef.role_id)) {
       return res
         .status(400)
-        .json({ message: "L'utilisateur spécifié n'est pas un chef de chantier" });
+        .json({ message: "L'utilisateur spécifié n'est pas un chef de projet ou un manager valide" });
     }
 
-    site.chef_id = chefId;
+    site.chef_de_projet_id = chefId;
     await site.save();
 
     res.json({ message: 'Chantier assigné avec succès', site });

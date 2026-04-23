@@ -9,6 +9,7 @@ const validateCreateCompetence = validate(schemas.createCompetence);
 const validateUpdateCompetence = validate(schemas.updateCompetence);
 
 const authorizedRoles = ['Admin', 'Manager', 'HR'];
+const viewRoles = ['Admin', 'Manager', 'HR', 'Project_Chief', 'Worker'];
 
 /**
  * @swagger
@@ -65,7 +66,7 @@ router.post(
  *       403:
  *         description: Interdit
  */
-router.get('/', protect, authorize(authorizedRoles), competenceController.getAllCompetences);
+router.get('/', protect, authorize(viewRoles), competenceController.getAllCompetences);
 
 /**
  * @swagger
@@ -92,7 +93,7 @@ router.get('/', protect, authorize(authorizedRoles), competenceController.getAll
  *       404:
  *         description: Compétence non trouvée
  */
-router.get('/:id', protect, authorize(authorizedRoles), competenceController.getCompetenceById);
+router.get('/:id', protect, authorize(viewRoles), competenceController.getCompetenceById);
 
 /**
  * @swagger

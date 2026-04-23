@@ -92,7 +92,7 @@ app.use(
     res.setHeader('Surrogate-Control', 'no-store');
     next();
   },
-  express.static('uploads/profile_pictures'),
+  express.static(path.join(__dirname, 'uploads/profile_pictures')),
 );
 
 app.use(
@@ -101,7 +101,7 @@ app.use(
     res.setHeader('Access-Control-Allow-Origin', '*');
     next();
   },
-  express.static('uploads/construction_sites'),
+  express.static(path.join(__dirname, 'uploads/construction_sites')),
 );
 
 app.use('/api/roles', roleRoutes);

@@ -130,15 +130,15 @@ export default function Missions() {
 
   const handleStatusUpdate = async (task: Task, status: TaskStatus) => {
     try {
+      await taskService.updateStatus(task.task_id, status);
       const updatedTask: Task = { ...task, status };
-      await taskService.update(task.task_id, updatedTask);
       setTasks(prev => prev.map(t => (t.task_id === task.task_id ? updatedTask : t)));
     } catch (err) {
       console.error(`Erreur lors du changement de statut vers ${status} :`, err);
       setError('Erreur lors de la mise à jour de la mission.');
     }
   };
-
+ 
   const handleRequestValidation = (task: Task) => {
     if (window.confirm('Êtes-vous sûr de vouloir demander la validation pour cette mission ?')) {
       handleStatusUpdate(task, 'En attente de validation');
