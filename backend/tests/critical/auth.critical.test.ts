@@ -42,7 +42,11 @@ jest.mock('../../middlewares/rateLimit.middleware', () => ({
 import User from '../../models/User';
 import PasswordResetToken from '../../models/PasswordResetToken';
 jest.mock('../../services/email.service', () => ({ sendMail: jest.fn() }));
-jest.mock('../../services/password.service', () => ({ hash: jest.fn() }));
+jest.mock('../../services/password.service', () => ({
+  ...jest.requireActual('../../services/password.service'),
+  hash: jest.fn().mockResolvedValue('hashed'),
+  compare: jest.fn().mockResolvedValue(true),
+}));
 const emailService = require('../../services/email.service');
 const passwordService = require('../../services/password.service');
 

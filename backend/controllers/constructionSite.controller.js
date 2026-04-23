@@ -211,7 +211,7 @@ exports.assignConstructionSite = async (req, res) => {
 // Mettre à jour l’image du chantier
 exports.updateConstructionImage = async (req, res) => {
   try {
-    const { siteId } = req.params.id;
+    const siteId = req.params.id;
     if (!req.file) {
       return res.status(400).json({ message: 'Aucune image envoyée' });
     }
@@ -233,7 +233,7 @@ exports.updateConstructionImage = async (req, res) => {
     site.image_url = req.file.filename;
     await site.save();
 
-    res.json({ message: 'Image du chantier mise à jour avec succès', image_url: site.image_url });
+    return res.status(200).json({ message: 'Image du chantier mise à jour avec succès', picture: site.image_url });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

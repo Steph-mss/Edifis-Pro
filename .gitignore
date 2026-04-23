@@ -10,6 +10,10 @@ frontend/edifis-pro/coverage
 
 pnpm-lock.yaml
 
+/docs
+/id_rsa
+/id_rsa.pub
+
 # Logs
 logs/
 *.log

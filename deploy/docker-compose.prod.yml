@@ -1,0 +1,55 @@
+version: "3.9"
+
+services:
+  db:
+    image: mariadb:11
+    container_name: edifis-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - edifis_db_data:/var/lib/mysql
+    networks:
+      - edifis-net
+    healthcheck:
+      test: [ "CMD", "mariadb-admin", "ping", "-h", "localhost", "-uroot", "-p${DB_ROOT_PASSWORD}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    image: ${IMAGE_BACKEND}
+    container_name: edifis-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend/uploads:/app/uploads
+    networks:
+      - edifis-net
+
+  frontend:
+    image: ${IMAGE_FRONTEND}
+    container_name: edifis-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+    networks:
+      - edifis-net
+
+volumes:
+  edifis_db_data:
+
+
+networks:
+  edifis-net:

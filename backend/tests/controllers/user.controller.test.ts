@@ -61,7 +61,9 @@ describe('User Controller', () => {
         role_id: 2,
         numberphone: '123456',
       };
-      User.create = jest.fn().mockRejectedValue(new Error('Création échouée'));
+      const uniqueError = new Error('UNIQUE constraint failed: users.email') as any;
+      uniqueError.name = 'SequelizeUniqueConstraintError';
+      User.create = jest.fn().mockRejectedValue(uniqueError);
 
       await createUser(req as Request, res as Response);
       expect(res.status).toHaveBeenCalledWith(409);
@@ -116,11 +118,12 @@ describe('User Controller', () => {
         role_id: 2,
         numberphone: '123456',
       };
-      (User.findOne as jest.Mock).mockRejectedValue(new Error('Création échouée'));
+      (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
+      User.create = jest.fn().mockRejectedValue(new Error('DB connection failed'));
 
       await createUser(req as Request, res as Response);
 
-      expect([500, 201]).toContain((res.status as jest.Mock).mock.calls[0][0]);
+      expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({ error: 'Création échouée' });
     });
   });
@@ -340,7 +343,6 @@ describe('User Controller', () => {
         firstname: 'New',
         lastname: 'User',
       });
-      expect([200, 500]).toContain((res.status as jest.Mock).mock.calls[0][0]);
       expect(res.json).toHaveBeenCalledWith({
         message: 'Utilisateur mis à jour',
         user: {

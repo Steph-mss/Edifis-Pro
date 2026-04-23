@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import logo from '../../assets/images/logo.svg';
+import apiService from '../../../services/apiService';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -14,20 +15,7 @@ export default function ForgotPassword() {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/forgot-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Une erreur est survenue');
-      }
-
+      await apiService.post('/auth/forgot-password', { email });
       setSuccess(true);
     } catch (err) {
       if (err instanceof Error) {

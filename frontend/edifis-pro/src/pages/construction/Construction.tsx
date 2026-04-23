@@ -4,8 +4,9 @@ import constructionSiteService from '../../../services/constructionSiteService';
 import { useAuth } from '../../context/AuthContext';
 import Loading from '../../components/loading/Loading';
 import Badge from '../../components/badge/Badge';
-import { List, LayoutGrid } from 'lucide-react';
+import { List, LayoutGrid, Trash2 } from 'lucide-react';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
+import { getConstructionImageUrl } from '../../utils/imageUrl';
 
 interface ConstructionSite {
   id: number;
@@ -19,7 +20,13 @@ interface ConstructionSite {
   image: string;
 }
 
-const GridView = ({ projects }: { projects: ConstructionSite[] }) => (
+interface ViewProps {
+  projects: ConstructionSite[];
+  canDelete: boolean;
+  onDelete: (id: number, name: string) => void;
+}
+
+const GridView = ({ projects, canDelete, onDelete }: ViewProps) => (
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
     {projects.map(project => (
       <div
@@ -41,18 +48,29 @@ const GridView = ({ projects }: { projects: ConstructionSite[] }) => (
           )}
         </div>
         <p className="text-sm text-gray-600 mb-4 flex-grow">{project.description}</p>
-        <Link
-          to={`/ConstructionDetails/${project.id}`}
-          className="mt-auto inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-colors h-9 px-4 py-2 bg-gray-200 text-gray-800 hover:bg-gray-300 w-full"
-        >
-          Voir plus
-        </Link>
+        <div className="mt-auto flex gap-2">
+          <Link
+            to={`/ConstructionDetails/${project.id}`}
+            className="flex-1 inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-colors h-9 px-4 py-2 bg-gray-200 text-gray-800 hover:bg-gray-300"
+          >
+            Voir plus
+          </Link>
+          {canDelete && project.status === 'Annulé' && (
+            <button
+              onClick={() => onDelete(project.id, project.name)}
+              aria-label={`Supprimer le chantier ${project.name}`}
+              className="inline-flex items-center justify-center rounded-lg h-9 w-9 bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
+            >
+              <Trash2 size={16} />
+            </button>
+          )}
+        </div>
       </div>
     ))}
   </div>
 );
 
-const ListView = ({ projects }: { projects: ConstructionSite[] }) => (
+const ListView = ({ projects, canDelete, onDelete }: ViewProps) => (
   <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
     <table className="w-full text-sm">
       <thead className="bg-gray-50">
@@ -76,12 +94,23 @@ const ListView = ({ projects }: { projects: ConstructionSite[] }) => (
               )}
             </td>
             <td className="px-6 py-4 text-right">
-              <Link
-                to={`/ConstructionDetails/${project.id}`}
-                className="inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-colors h-8 px-3 py-1 bg-gray-200 text-gray-800 hover:bg-gray-300"
-              >
-                Voir
-              </Link>
+              <div className="flex items-center justify-end gap-2">
+                <Link
+                  to={`/ConstructionDetails/${project.id}`}
+                  className="inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-colors h-8 px-3 py-1 bg-gray-200 text-gray-800 hover:bg-gray-300"
+                >
+                  Voir
+                </Link>
+                {canDelete && project.status === 'Annulé' && (
+                  <button
+                    onClick={() => onDelete(project.id, project.name)}
+                    aria-label={`Supprimer le chantier ${project.name}`}
+                    className="inline-flex items-center justify-center rounded-lg h-8 w-8 bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
+              </div>
             </td>
           </tr>
         ))}
@@ -97,15 +126,14 @@ export default function Construction() {
   const [statusFilter, setStatusFilter] = useState('Tous');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [view, setView] = useState('grid'); // 'grid' or 'list'
+  const [view, setView] = useState('grid');
   const isMobile = useMediaQuery('(max-width: 768px)');
 
+  const canDelete = user?.role?.name === 'Admin';
   const statuses = ['Tous', 'En cours', 'Terminé', 'Annulé', 'Prévu'];
 
   useEffect(() => {
-    if (isMobile) {
-      setView('grid');
-    }
+    if (isMobile) setView('grid');
   }, [isMobile]);
 
   useEffect(() => {
@@ -121,24 +149,27 @@ export default function Construction() {
           status: site.state ?? 'Prévu',
           startDate: site.start_date ?? '',
           endDate: site.end_date ?? '',
-          image:
-            site.image_url ||
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSANsddCLc_2TYdgSqBQVFNutn0FvR6qB7BQg&s',
+          image: getConstructionImageUrl(site.image_url),
         }));
         setProjects(formattedData);
       } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError('Une erreur est survenue.');
-        }
+        setError(err instanceof Error ? err.message : 'Une erreur est survenue.');
       } finally {
         setLoading(false);
       }
     };
-
     fetchConstructionSites();
   }, []);
+
+  const handleDelete = async (id: number, name: string) => {
+    if (!window.confirm(`Supprimer définitivement le chantier "${name}" ?`)) return;
+    try {
+      await constructionSiteService.delete(id);
+      setProjects(prev => prev.filter(p => p.id !== id));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Erreur lors de la suppression.');
+    }
+  };
 
   const filteredProjects = projects.filter(project => {
     const matchesStatus = statusFilter === 'Tous' || project.status === statusFilter;
@@ -173,9 +204,7 @@ export default function Construction() {
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <label htmlFor="searchQuery" className="sr-only">
-          Rechercher un chantier
-        </label>
+        <label htmlFor="searchQuery" className="sr-only">Rechercher un chantier</label>
         <input
           type="search"
           placeholder="Rechercher un chantier..."
@@ -183,18 +212,14 @@ export default function Construction() {
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
         />
-        <label htmlFor="statusFilter" className="sr-only">
-          Filtrer les chantiers par statut
-        </label>
+        <label htmlFor="statusFilter" className="sr-only">Filtrer les chantiers par statut</label>
         <select
           value={statusFilter}
           onChange={e => setStatusFilter(e.target.value)}
           className="h-10 w-full md:w-auto rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer"
         >
           {statuses.map(status => (
-            <option key={status} value={status}>
-              {status}
-            </option>
+            <option key={status} value={status}>{status}</option>
           ))}
         </select>
         <div className="hidden md:flex items-center gap-2 ml-auto">
@@ -205,7 +230,6 @@ export default function Construction() {
           >
             <LayoutGrid size={20} />
           </button>
-
           <button
             onClick={() => setView('list')}
             aria-label="Afficher en liste"
@@ -218,9 +242,9 @@ export default function Construction() {
 
       {filteredProjects.length > 0 ? (
         isMobile || view === 'grid' ? (
-          <GridView projects={filteredProjects} />
+          <GridView projects={filteredProjects} canDelete={canDelete} onDelete={handleDelete} />
         ) : (
-          <ListView projects={filteredProjects} />
+          <ListView projects={filteredProjects} canDelete={canDelete} onDelete={handleDelete} />
         )
       ) : (
         <p className="text-center text-gray-600 col-span-full py-10">

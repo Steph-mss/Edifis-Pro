@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(NODE_ENV=test JWT_SECRET=test_secret JWT_EXPIRES_IN=1h FRONTEND_URL=http://localhost:5174 PORT=5000 npm test)",
+      "Bash(NODE_ENV=test JWT_SECRET=test_secret JWT_EXPIRES_IN=1h FRONTEND_URL=http://localhost:5174 PORT=5000 npm test -- tests/critical/auth.critical.test.ts)",
+      "Bash(VITE_API_URL=http://localhost:3000 npm run build)",
+      "Bash(docker --version)",
+      "Bash(node server.js)",
+      "Bash(curl -s http://localhost:3000/)",
+      "Bash(curl:*)",
+      "Bash(node:*)",
+      "Bash(pkill -f \"node server.js\")",
+      "Bash(DISABLE_RATE_LIMIT=true node server.js)",
+      "Bash(netstat -ano)",
+      "Bash(taskkill //PID 4764 //F)",
+      "Bash(npm test:*)",
+      "Bash(VITE_API_URL=http://localhost:3000 npm run dev -- --host 0.0.0.0)",
+      "Read(//c/Users/steve/AppData/Local/Temp/claude/C--Users-steve-pep-Edifis-Pro/d232e68c-1280-4f70-8ad2-4e832578977c/tasks/**)",
+      "Bash(taskkill //PID 3696 //F)",
+      "Bash(taskkill //PID 34048 //F)",
+      "Bash(taskkill //PID 23484 //F)",
+      "Bash(taskkill //PID 1928 //F)"
+    ]
+  }
+}

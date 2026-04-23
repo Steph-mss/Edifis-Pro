@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const ctrl = require('../controllers/constructionSite.controller');
 const { protect } = require('../middlewares/auth.middleware');
-const { upload, setUploadType } = require('../middlewares/upload.middleware');
+const { upload, setUploadType, handleUploadError } = require('../middlewares/upload.middleware');
 
 /**
  * @swagger
@@ -43,6 +43,7 @@ router.post(
   protect,
   setUploadType('construction'),
   upload.single('image'),
+  handleUploadError,
   (req, res, next) => {
     if (req.user && ['Admin', 'Manager'].includes(req.user.role)) return next();
     return res.status(403).json({ message: 'Seul Admin/Manager peut créer' });
@@ -176,6 +177,19 @@ router.delete(
     return res.status(403).json({ message: 'Seul Admin peut supprimer' });
   },
   ctrl.deleteConstructionSite,
+);
+
+router.patch(
+  '/:id/image',
+  protect,
+  (req, res, next) => {
+    if (req.user && ['Admin', 'Manager'].includes(req.user.role)) return next();
+    return res.status(403).json({ message: 'Seul Admin/Manager peut modifier' });
+  },
+  setUploadType('construction'),
+  upload.single('image'),
+  handleUploadError,
+  ctrl.updateConstructionImage,
 );
 
 module.exports = router;

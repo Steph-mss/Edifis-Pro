@@ -323,7 +323,7 @@ exports.getDirectory = async (req, res) => {
       const workerRole = await Role.findOne({ where: { name: 'Worker' } });
       where = { role_id: workerRole?.role_id || -1 };
     } else if (meRole === 'Worker') {
-      where = { user_id: req.user.userId };
+      where = { user_id: req.user.id || req.user.userId || req.user.user_id };
     } // Admin/HR => pas de filtre
 
     const users = await User.findAll({
@@ -407,14 +407,15 @@ exports.changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
 
+    const policy = validatePolicy(newPassword);
+    if (!policy.ok) {
+      return res.status(400).json({ message: 'Erreur de validation', errors: policy.errors });
+    }
+
     const userId = req.user?.id || req.user?.user_id || req.user?.userId;
     const user = await User.findByPk(userId);
     if (!user) {
       return res.status(404).json({ message: 'Utilisateur non trouvé' });
-    }
-
-    if (!validatePolicy(newPassword)) {
-      return res.status(400).json({ message: 'Erreur de validation' });
     }
 
     const ok = await bcrypt.compare(currentPassword, user.password);

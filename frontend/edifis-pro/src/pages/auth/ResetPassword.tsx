@@ -1,6 +1,7 @@
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import logo from '../../assets/images/logo.svg';
+import apiService from '../../../services/apiService';
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -40,24 +41,11 @@ export default function ResetPassword() {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/reset-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          token,
-          newPassword: formData.newPassword,
-          confirmNewPassword: formData.confirmNewPassword,
-        }),
+      await apiService.post('/auth/reset-password', {
+        token,
+        newPassword: formData.newPassword,
+        confirmNewPassword: formData.confirmNewPassword,
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Une erreur est survenue');
-      }
-
       setSuccess(true);
       setTimeout(() => {
         navigate('/login');

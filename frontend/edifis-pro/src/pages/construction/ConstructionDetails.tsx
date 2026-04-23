@@ -8,6 +8,7 @@ import userService, { User } from '../../../services/userService';
 import taskService, { Task } from '../../../services/taskService';
 import Loading from '../../components/loading/Loading';
 import Badge from '../../components/badge/Badge';
+import { getConstructionImageUrl } from '../../utils/imageUrl';
 
 export default function ConstructionDetails() {
   const { id } = useParams<{ id: string }>();
@@ -273,6 +274,16 @@ export default function ConstructionDetails() {
 
         {/* --- Main Content --- */}
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 space-y-6">
+          {/* --- Photo du chantier --- */}
+          <div>
+            <img
+              src={getConstructionImageUrl(construction.image_url)}
+              alt={`Photo du chantier ${construction.name}`}
+              className="w-full h-64 object-cover rounded-lg border border-gray-200"
+              loading="lazy"
+            />
+          </div>
+
           {/* --- Description --- */}
           <div>
             <label className="text-sm font-medium text-gray-700">Description</label>

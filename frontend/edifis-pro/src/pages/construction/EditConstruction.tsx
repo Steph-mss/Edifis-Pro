@@ -82,30 +82,31 @@ export default function EditConstruction() {
       return;
     }
 
-    const formDataToSend = new FormData();
-
-    const data = {
-      ...formData,
-      chef_de_projet_id: formData.chef_de_projet_id
-        ? parseInt(formData.chef_de_projet_id, 10)
-        : undefined,
-    };
-
-    Object.entries(data).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        formDataToSend.append(key, String(value));
-      }
-    });
-
-    if (image) {
-      formDataToSend.append('image', image);
-    }
-
     try {
-      await constructionSiteService.update(Number(id), formDataToSend);
+      // 1. Envoyer les données texte (incluant le statut) en JSON
+      await constructionSiteService.update(Number(id), {
+        name: formData.name,
+        description: formData.description,
+        adresse: formData.adresse,
+        state: formData.state as 'En cours' | 'Terminé' | 'Annulé' | 'Prévu',
+        start_date: formData.start_date || undefined,
+        end_date: formData.end_date || undefined,
+        chef_de_projet_id: formData.chef_de_projet_id
+          ? parseInt(formData.chef_de_projet_id, 10)
+          : undefined,
+      });
+
+      // 2. Si une nouvelle image est sélectionnée, l'envoyer séparément en multipart
+      if (image) {
+        const imageForm = new FormData();
+        imageForm.append('image', image);
+        await constructionSiteService.updateForm(Number(id), imageForm);
+      }
+
       navigate('/construction');
     } catch (error) {
       console.error('Erreur lors de la mise à jour du chantier :', error);
+      alert(error instanceof Error ? error.message : 'Erreur lors de la mise à jour.');
     }
   };
 

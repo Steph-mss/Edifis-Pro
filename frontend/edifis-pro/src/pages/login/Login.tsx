@@ -39,7 +39,7 @@ export default function Login() {
 
     try {
       const { token } = await authService.login(formData);
-      login(token);
+      await login(token);
       navigate('/');
     } catch (err) {
       if (err instanceof Error) {

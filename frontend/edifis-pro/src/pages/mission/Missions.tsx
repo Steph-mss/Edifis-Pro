@@ -37,7 +37,7 @@ export default function Missions() {
     async function fetchData() {
       try {
         let data: Task[] = [];
-        if (user?.role?.name === 'Admin') {
+        if (user?.role?.name === 'Admin' || user?.role?.name === 'Manager' || user?.role?.name === 'Project_Chief') {
           data = await taskService.getAll();
         } else if (user) {
           data = await taskService.getByUserId(user.user_id);

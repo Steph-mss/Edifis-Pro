@@ -128,6 +128,22 @@ const apiService = {
     }
     return await response.json();
   },
+
+  patchForm: async <T>(endpoint: string, formData: FormData): Promise<T> => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || errorData.message || 'Une erreur est survenue');
+    }
+    return await response.json();
+  },
 };
 
 export default apiService;

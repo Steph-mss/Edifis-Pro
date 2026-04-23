@@ -23,6 +23,7 @@ export default function AddConstruction() {
     start_date: '',
     end_date: '',
   });
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Image sélectionnée
   const [image, setImage] = useState<File | null>(null);
@@ -47,16 +48,16 @@ export default function AddConstruction() {
     let { name, value } = e.target;
 
     if (name === 'name') {
-      // Autorise lettres, chiffres, espaces, tiret, underscore
-      value = value.replace(/[^a-zA-Z0-9\s\-_]/g, '');
+      // Autorise lettres (y compris accents), chiffres, espaces, tiret, underscore
+      value = value.replace(/[^\w\s\-_àâäéèêëîïôöùûüçÀÂÄÉÈÊËÎÏÔÖÙÛÜÇ]/g, '');
     }
     if (name === 'description') {
       // Retire < et >
       value = value.replace(/[<>]/g, '');
     }
     if (name === 'adresse') {
-      // Autorise lettres, chiffres, espaces, virgule
-      value = value.replace(/[^a-zA-Z0-9\s,]/g, '');
+      // Autorise lettres (y compris accents), chiffres, espaces, virgule, tiret
+      value = value.replace(/[^\w\s,\-àâäéèêëîïôöùûüçÀÂÄÉÈÊËÎÏÔÖÙÛÜÇ]/g, '');
     }
 
     // On met à jour l'état
@@ -84,13 +85,27 @@ export default function AddConstruction() {
   // Envoi du formulaire
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
+
+    if (!formData.name.trim()) {
+      setSubmitError('Le nom du chantier est requis.');
+      return;
+    }
+    if (!formData.adresse.trim()) {
+      setSubmitError('L\'adresse est requise.');
+      return;
+    }
+    if (!formData.description.trim()) {
+      setSubmitError('La description est requise.');
+      return;
+    }
 
     if (
       formData.end_date &&
       formData.start_date &&
       new Date(formData.end_date) < new Date(formData.start_date)
     ) {
-      alert('La date de fin ne peut pas être antérieure à la date de début.');
+      setSubmitError('La date de fin ne peut pas être antérieure à la date de début.');
       return;
     }
 
@@ -124,6 +139,11 @@ export default function AddConstruction() {
       navigate('/construction');
     } catch (error) {
       console.error("Erreur lors de l'ajout du chantier :", error);
+      if (error instanceof Error) {
+        setSubmitError(error.message);
+      } else {
+        setSubmitError("Une erreur est survenue lors de l'ajout du chantier.");
+      }
     }
   };
 
@@ -256,6 +276,12 @@ export default function AddConstruction() {
               className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100 cursor-pointer"
             />
           </div>
+
+          {submitError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-sm text-red-600">{submitError}</p>
+            </div>
+          )}
 
           <div className="border-t border-gray-200 pt-6 flex justify-end">
             <button
